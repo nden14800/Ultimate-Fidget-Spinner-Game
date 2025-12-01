@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Ultimate Fidget Spinner Game</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #f0f2f5;
+            --text-color: #333333;
+            --panel-bg: #ffffff;
+            --border-color: #e0e0e0;
+            --accent-color: #2196F3;
+            --instruction-bg: #e3f2fd;
+            --stat-row-hover: #f9f9f9;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg-color: #121212;
+                --text-color: #e0e0e0;
+                --panel-bg: #1e1e1e;
+                --border-color: #333;
+                --accent-color: #64b5f6;
+                --instruction-bg: rgba(33, 150, 243, 0.15);
+                --stat-row-hover: #2c2c2c;
+            }
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden; /* Prevent body scroll, handle inside containers */
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Roboto', sans-serif;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* アプリ全体のレイアウトコンテナ */
+        #app-container {
+            display: flex;
+            flex: 1;
+            height: 100%;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* 左側のUIパネル (PC向け設定) */
+        #ui-panel {
+            width: 360px;
+            background-color: var(--panel-bg);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            box-sizing: border-box;
+            
+            /* スクロール設定 */
+            overflow-y: auto; 
+            -webkit-overflow-scrolling: touch; /* iOSでのスムーズスクロール */
+            
+            z-index: 10;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.05);
+            flex-shrink: 0;
+        }
+
+        /* 右側のCanvasエリア */
+        #canvas-area {
+            flex: 1;
+            position: relative;
+            background-color: var(--bg-color);
+            overflow: hidden;
+            cursor: grab;
+        }
+        #canvas-area:active {
+            cursor: grabbing;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* UI要素のスタイル */
+        .panel-section {
+            margin-bottom: 25px;
+        }
+        .panel-section:last-child {
+            margin-bottom: 0;
+        }
+
+        /* 操作説明ボックス */
+        .instructions {
+            background: var(--instruction-bg);
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid var(--accent-color);
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+        
+        .instructions h3 {
+            margin: 0 0 8px 0;
+            font-size: 1rem;
+            color: var(--accent-color);
+        }
+
+        .instructions ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+        .instructions li {
+            margin-bottom: 4px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 700;
+            font-size: 0.95rem;
+        }
+
+        select {
+            width: 100%;
+            padding: 12px;
+            font-size: 15px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            background: var(--bg-color);
+            color: var(--text-color);
+            outline: none;
+            cursor: pointer;
+            transition: border-color 0.2s;
+        }
+        select:focus {
+            border-color: var(--accent-color);
+        }
+
+        /* 統計テーブル */
+        .stats-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+        
+        .stats-table tr {
+            border-bottom: 1px solid var(--border-color);
+            transition: background-color 0.2s;
+        }
+        .stats-table tr:hover {
+            background-color: var(--stat-row-hover);
+        }
+        .stats-table tr:last-child {
+            border-bottom: none;
+        }
+        .stats-table td {
+            padding: 10px 5px;
+        }
+        .stats-table .label {
+            opacity: 0.8;
+            font-weight: 400;
+        }
+        .stats-table .value {
+            text-align: right;
+            font-weight: 500;
+            font-variant-numeric: tabular-nums;
+            color: var(--accent-color);
+        }
+
+        /* メイン統計 (総回転数) */
+        .main-stat-box {
+            text-align: center;
+            padding: 20px;
+            background: var(--bg-color);
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            margin-bottom: 15px;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.03);
+        }
+        .main-stat-value {
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: var(--accent-color);
+            display: block;
+            margin-bottom: 5px;
+            line-height: 1;
+        }
+        .main-stat-label {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            opacity: 0.6;
+        }
+
+        /* スマホ向けレスポンシブ対応 */
+        @media (max-width: 768px) {
+            #app-container {
+                flex-direction: column;
+            }
+
+            #ui-panel {
+                width: 100%;
+                height: auto;
+                /* 画面の45%までUIを表示し、それ以上はスクロール */
+                max-height: 45vh; 
+                border-right: none;
+                border-bottom: 1px solid var(--border-color);
+                padding: 15px;
+                
+                /* スマホではスクロールバーを常に表示しやすくする */
+                overflow-y: auto;
+            }
+
+            .panel-section {
+                margin-bottom: 20px;
+            }
+
+            .main-stat-box {
+                padding: 15px;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                text-align: left;
+            }
+            .main-stat-value {
+                font-size: 1.8rem;
+                margin-bottom: 0;
+            }
+        }
+
+        /* スクロールバーのカスタマイズ */
+        #ui-panel::-webkit-scrollbar {
+            width: 8px;
+        }
+        #ui-panel::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        #ui-panel::-webkit-scrollbar-thumb {
+            background-color: var(--border-color);
+            border-radius: 4px;
+            border: 2px solid var(--panel-bg); /* Padding effect */
+        }
+        #ui-panel::-webkit-scrollbar-thumb:hover {
+            background-color: #999;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="app-container">
+        <!-- UI Panel (Scrollable) -->
+        <div id="ui-panel">
+            
+            <!-- Instructions -->
+            <div class="panel-section instructions">
+                <h3>🎮 操作方法</h3>
+                <ul>
+                    <li><strong>回転:</strong> マウスか指で勢いよくスワイプ</li>
+                    <li><strong>停止:</strong> 画面をタップ/クリックしたまま保持</li>
+                    <li><strong>UI:</strong> パネル内をスクロールして全データを確認</li>
+                </ul>
+            </div>
+
+            <!-- Controls -->
+            <div class="panel-section">
+                <label for="typeSelect">ハンドスピナーのモデル</label>
+                <select id="typeSelect">
+                    <option value="rusty">錆びたベアリング (ジャンク)</option>
+                    <option value="plastic">チープ・プラスチック</option>
+                    <option value="standard">スタンダードモデル</option>
+                    <option value="ninja">ニンジャ・スター (手裏剣)</option>
+                    <option value="heavy">ヘビーメタル (重量級)</option>
+                    <option value="performance">ハイパフォーマンス (競技用)</option>
+                    <option value="circle" selected>ザ・サークル (超重量・長時間)</option>
+                    <option value="rainbow">レインボー (ゲーミング)</option>
+                    <option value="infinity">永久機関 (∞回転)</option>
+                </select>
+            </div>
+
+            <!-- Stats -->
+            <div class="panel-section">
+                <label>回転データ</label>
+                
+                <div class="main-stat-box">
+                    <span class="main-stat-label">総回転数</span>
+                    <span class="main-stat-value" id="totalRevs">0.00</span>
+                </div>
+                
+                <!-- 統計情報をテーブル化 -->
+                <table class="stats-table">
+                    <tr><td class="label">予想残り時間</td><td class="value" id="timeLeft">0s</td></tr>
+                    <tr><td class="label">現在の回転数 (RPM)</td><td class="value" id="currentRPM">0</td></tr>
+                    <tr><td class="label">速度 (1秒換算)</td><td class="value" id="speed1s">0</td></tr>
+                    <tr><td class="label">速度 (5秒換算)</td><td class="value" id="speed5s">0</td></tr>
+                    <tr><td class="label">速度 (1分換算)</td><td class="value" id="speed1m">0</td></tr>
+                    <tr><td class="label">速度 (10分換算)</td><td class="value" id="speed10m">0</td></tr>
+                    <tr><td class="label">速度 (30分換算)</td><td class="value" id="speed30m">0</td></tr>
+                    <tr><td class="label">速度 (1時間換算)</td><td class="value" id="speed1h">0</td></tr>
+                </table>
+            </div>
+        </div>
+
+        <!-- Canvas Area -->
+        <div id="canvas-area">
+            <canvas id="spinnerCanvas"></canvas>
+        </div>
+    </div>
+
+<script>
+    const canvas = document.getElementById('spinnerCanvas');
+    const canvasContainer = document.getElementById('canvas-area');
+    const ctx = canvas.getContext('2d', { alpha: false }); // 背景透過なしで高速化
+    const typeSelect = document.getElementById('typeSelect');
+
+    // UI Elements
+    const elTotalRevs = document.getElementById('totalRevs');
+    const elTimeLeft = document.getElementById('timeLeft');
+    const elCurrentRPM = document.getElementById('currentRPM');
+    const speedEls = {
+        1: document.getElementById('speed1s'),
+        5: document.getElementById('speed5s'),
+        60: document.getElementById('speed1m'),
+        600: document.getElementById('speed10m'),
+        1800: document.getElementById('speed30m'),
+        3600: document.getElementById('speed1h'),
+    };
+
+    // State
+    let width, height;
+    let centerX, centerY;
+    let angle = 0;
+    let velocity = 0;
+    let isDragging = false;
+    let lastMouseAngle = 0;
+    let totalRotation = 0;
+    
+    // Physics Configuration
+    const SPINNER_TYPES = {
+        rusty:       { damping: 0.92,   mass: 1.0, type: 'tri' },
+        plastic:     { damping: 0.95,   mass: 0.5, type: 'tri' },
+        standard:    { damping: 0.985,  mass: 1.0, type: 'tri' },
+        ninja:       { damping: 0.99,   mass: 1.2, type: 'ninja' },
+        heavy:       { damping: 0.995,  mass: 2.5, type: 'tri' },
+        performance: { damping: 0.998,  mass: 1.5, type: 'tri' },
+        rainbow:     { damping: 0.99,   mass: 1.0, type: 'rainbow' },
+        circle:      { damping: 0.99992, mass: 3.0, type: 'circle' }, 
+        infinity:    { damping: 1.0,     mass: 1.0, type: 'infinity' }
+    };
+
+    let currentConfig = SPINNER_TYPES[typeSelect.value];
+
+    // Resize Handling
+    // ウィンドウではなく、canvas-areaのサイズに合わせてリサイズする
+    function resize() {
+        const rect = canvasContainer.getBoundingClientRect();
+        width = rect.width;
+        height = rect.height;
+        
+        // Handle High DPI (Retina)
+        const dpr = window.devicePixelRatio || 1;
+        canvas.width = width * dpr;
+        canvas.height = height * dpr;
+        ctx.scale(dpr, dpr);
+        
+        centerX = width / 2;
+        centerY = height / 2;
+    }
+    window.addEventListener('resize', resize);
+    // 初期化時にも実行
+    resize();
+
+    // Interaction Handling
+    function getAngle(x, y) {
+        // マウス座標はウィンドウ基準なので、キャンバスのオフセットを引く
+        const rect = canvas.getBoundingClientRect();
+        return Math.atan2((y - rect.top) - centerY, (x - rect.left) - centerX);
+    }
+
+    function startDrag(e) {
+        // UIパネル上の操作はCanvasに伝えない
+        if(e.target.closest('#ui-panel')) return;
+
+        isDragging = true;
+        const x = e.touches ? e.touches[0].clientX : e.clientX;
+        const y = e.touches ? e.touches[0].clientY : e.clientY;
+        lastMouseAngle = getAngle(x, y);
+        velocity = 0; 
+    }
+
+    function moveDrag(e) {
+        if (!isDragging) return;
+        
+        // Prevent default touch actions (scrolling) only when dragging on canvas
+        if(e.cancelable) e.preventDefault();
+
+        const x = e.touches ? e.touches[0].clientX : e.clientX;
+        const y = e.touches ? e.touches[0].clientY : e.clientY;
+        const currentMouseAngle = getAngle(x, y);
+        
+        let delta = currentMouseAngle - lastMouseAngle;
+        // Handle wrapping from PI to -PI
+        if (delta > Math.PI) delta -= Math.PI * 2;
+        if (delta < -Math.PI) delta += Math.PI * 2;
+
+        angle += delta;
+        velocity = delta; 
+        
+        lastMouseAngle = currentMouseAngle;
+    }
+
+    function endDrag() {
+        isDragging = false;
+        const maxVel = 1.5;
+        if (velocity > maxVel) velocity = maxVel;
+        if (velocity < -maxVel) velocity = -maxVel;
+    }
+
+    // Event Listeners
+    // Use canvasContainer instead of canvas to catch events in the area
+    canvasContainer.addEventListener('mousedown', startDrag);
+    window.addEventListener('mousemove', moveDrag);
+    window.addEventListener('mouseup', endDrag);
+
+    canvasContainer.addEventListener('touchstart', startDrag, {passive: false});
+    window.addEventListener('touchmove', moveDrag, {passive: false});
+    window.addEventListener('touchend', endDrag);
+
+    typeSelect.addEventListener('change', (e) => {
+        currentConfig = SPINNER_TYPES[e.target.value];
+    });
+
+    // --- Drawing Functions ---
+
+    function drawTriSpinner(radius, styleType) {
+        const r = radius;
+        const lobeRadius = r * 0.45;
+        const centerRadius = r * 0.25;
+
+        // Shadow
+        ctx.shadowColor = "rgba(0,0,0,0.2)";
+        ctx.shadowBlur = 20;
+        ctx.shadowOffsetY = 10;
+
+        // Body Shape
+        ctx.beginPath();
+        for (let i = 0; i < 3; i++) {
+            const theta = (Math.PI * 2 * i) / 3;
+            const lx = Math.cos(theta) * (r * 0.6);
+            const ly = Math.sin(theta) * (r * 0.6);
+            ctx.moveTo(lx, ly);
+            ctx.arc(lx, ly, lobeRadius, 0, Math.PI * 2);
+        }
+
+        // Fill Style
+        if (styleType === 'rainbow') {
+            ctx.fillStyle = `hsl(${angle * 60}, 90%, 60%)`;
+        } else if (styleType === 'infinity') {
+            const infGrad = ctx.createRadialGradient(0,0, r*0.1, 0,0, r);
+            infGrad.addColorStop(0, '#00ffff');
+            infGrad.addColorStop(0.5, '#0088ff');
+            infGrad.addColorStop(1, '#000033');
+            ctx.fillStyle = infGrad;
+        } else if (typeSelect.value === 'plastic') {
+            ctx.fillStyle = '#FF5722'; 
+        } else if (typeSelect.value === 'heavy') {
+            ctx.fillStyle = '#4a4a4a'; 
+        } else {
+            const grd = ctx.createLinearGradient(-r, -r, r, r);
+            grd.addColorStop(0, '#e0e0e0');
+            grd.addColorStop(0.5, '#f5f5f5');
+            grd.addColorStop(1, '#bdbdbd');
+            ctx.fillStyle = grd;
+        }
+        
+        ctx.fill();
+        ctx.shadowColor = "transparent"; 
+
+        // Weights / Details
+        for (let i = 0; i < 3; i++) {
+            const theta = (Math.PI * 2 * i) / 3;
+            const lx = Math.cos(theta) * (r * 0.6);
+            const ly = Math.sin(theta) * (r * 0.6);
+            
+            ctx.beginPath();
+            ctx.arc(lx, ly, lobeRadius * 0.7, 0, Math.PI * 2);
+            ctx.fillStyle = (styleType === 'infinity') ? '#fff' : '#333';
+            ctx.fill();
+            
+            if (styleType !== 'plastic') {
+                ctx.beginPath();
+                ctx.arc(lx - 5, ly - 5, lobeRadius * 0.2, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(255,255,255,0.3)';
+                ctx.fill();
+            }
+        }
+
+        // Center Cap
+        ctx.beginPath();
+        ctx.arc(0, 0, centerRadius, 0, Math.PI * 2);
+        const capGrad = ctx.createRadialGradient(-5, -5, 5, 0, 0, centerRadius);
+        capGrad.addColorStop(0, '#fff');
+        capGrad.addColorStop(1, '#999');
+        ctx.fillStyle = capGrad;
+        ctx.fill();
+    }
+
+    function drawNinjaSpinner(radius) {
+        const r = radius;
+        const blades = 4;
+        
+        ctx.shadowColor = "rgba(0,0,0,0.3)";
+        ctx.shadowBlur = 15;
+        ctx.shadowOffsetY = 8;
+
+        ctx.beginPath();
+        for (let i = 0; i < blades * 2; i++) {
+            const theta = (Math.PI * i) / blades;
+            const dist = (i % 2 === 0) ? r : r * 0.3;
+            const px = Math.cos(theta) * dist;
+            const py = Math.sin(theta) * dist;
+            if (i===0) ctx.moveTo(px, py);
+            else ctx.lineTo(px, py);
+        }
+        ctx.closePath();
+
+        const ninGrad = ctx.createLinearGradient(-r, -r, r, r);
+        ninGrad.addColorStop(0, '#111');
+        ninGrad.addColorStop(0.5, '#444');
+        ninGrad.addColorStop(1, '#000');
+        ctx.fillStyle = ninGrad;
+        ctx.fill();
+        
+        ctx.strokeStyle = '#ccc';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        ctx.shadowColor = "transparent";
+        
+        // Center
+        ctx.beginPath();
+        ctx.arc(0, 0, r*0.15, 0, Math.PI*2);
+        ctx.fillStyle = "#888";
+        ctx.fill();
+    }
+
+    function drawCircleSpinner(radius) {
+        const r = radius * 0.9;
+        
+        ctx.shadowColor = "rgba(0,0,0,0.3)";
+        ctx.shadowBlur = 15;
+        ctx.shadowOffsetY = 8;
+
+        // 1. Outer Gold Rim
+        ctx.beginPath();
+        ctx.arc(0, 0, r, 0, Math.PI * 2);
+        const goldGrad = ctx.createLinearGradient(-r, -r, r, r);
+        goldGrad.addColorStop(0, '#B8860B'); 
+        goldGrad.addColorStop(0.2, '#FFD700'); 
+        goldGrad.addColorStop(0.5, '#FFF8DC'); 
+        goldGrad.addColorStop(0.8, '#FFD700');
+        goldGrad.addColorStop(1, '#DAA520'); 
+        ctx.fillStyle = goldGrad;
+        ctx.fill();
+        ctx.shadowColor = "transparent";
+
+        // 2. Inner Silver Body
+        const innerR = r * 0.85;
+        ctx.beginPath();
+        ctx.arc(0, 0, innerR, 0, Math.PI * 2);
+        const silverGrad = ctx.createRadialGradient(0, 0, innerR * 0.2, 0, 0, innerR);
+        silverGrad.addColorStop(0, '#f5f5f5');
+        silverGrad.addColorStop(0.8, '#dcdcdc');
+        silverGrad.addColorStop(1, '#a9a9a9');
+        ctx.fillStyle = silverGrad;
+        ctx.fill();
+
+        // Texture
+        ctx.strokeStyle = "rgba(0,0,0,0.05)";
+        ctx.lineWidth = 1;
+        for(let i=0; i<5; i++) {
+            ctx.beginPath();
+            ctx.arc(0, 0, innerR * (0.3 + i*0.15), 0, Math.PI * 2);
+            ctx.stroke();
+        }
+
+        // 3. Holes
+        const holeDist = r * 0.6;
+        const holeRadius = r * 0.18;
+        
+        ctx.globalCompositeOperation = 'destination-out'; 
+        for (let i = 0; i < 8; i++) {
+            const theta = (Math.PI * 2 * i) / 8;
+            const hx = Math.cos(theta) * holeDist;
+            const hy = Math.sin(theta) * holeDist;
+            ctx.beginPath();
+            ctx.arc(hx, hy, holeRadius, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        ctx.globalCompositeOperation = 'source-over'; 
+
+        for (let i = 0; i < 8; i++) {
+            const theta = (Math.PI * 2 * i) / 8;
+            const hx = Math.cos(theta) * holeDist;
+            const hy = Math.sin(theta) * holeDist;
+            ctx.beginPath();
+            ctx.arc(hx, hy, holeRadius, 0, Math.PI * 2);
+            ctx.strokeStyle = "rgba(0,0,0,0.2)";
+            ctx.lineWidth = 2;
+            ctx.stroke();
+        }
+
+        // 4. Center Cap
+        const capR = r * 0.25;
+        ctx.beginPath();
+        ctx.arc(0, 0, capR, 0, Math.PI * 2);
+        const capGrad = ctx.createRadialGradient(-10, -10, 5, 0, 0, capR);
+        capGrad.addColorStop(0, '#ffffff');
+        capGrad.addColorStop(1, '#C0C0C0');
+        ctx.fillStyle = capGrad;
+        ctx.fill();
+
+        // 5. Text
+        ctx.save();
+        ctx.fillStyle = "#888";
+        ctx.font = `bold ${capR * 0.22}px 'Roboto', sans-serif`;
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText("OMEGA DRIVE", 0, -capR * 0.2);
+        ctx.font = `${capR * 0.18}px 'Roboto', sans-serif`;
+        ctx.fillText("GEN-X", 0, capR * 0.2);
+        ctx.restore();
+    }
+
+    function updatePhysics() {
+        if (!isDragging) {
+            if (currentConfig.type === 'infinity') {
+                if (Math.abs(velocity) <= 0.001) velocity = 0;
+            } else {
+                velocity *= currentConfig.damping;
+                if (Math.abs(velocity) < 0.0001) velocity = 0;
+            }
+            angle += velocity;
+        }
+
+        totalRotation += Math.abs(velocity / (2 * Math.PI));
+    }
+
+    function calculateStats() {
+        // 1. Total Revolutions
+        elTotalRevs.textContent = totalRotation.toFixed(2);
+
+        // 2. Current RPM
+        const fps = 60;
+        const absVel = Math.abs(velocity);
+        const rps = (absVel * fps) / (2 * Math.PI);
+        const rpm = rps * 60;
+        
+        elCurrentRPM.textContent = Math.round(rpm).toLocaleString();
+
+        // 3. Projected Counts
+        const calcRotationsForDuration = (seconds) => {
+            return (rps * seconds).toFixed(1);
+        };
+        
+        speedEls[1].textContent = calcRotationsForDuration(1);
+        speedEls[5].textContent = calcRotationsForDuration(5);
+        speedEls[60].textContent = calcRotationsForDuration(60); 
+        speedEls[600].textContent = calcRotationsForDuration(600); 
+        speedEls[1800].textContent = Math.round(rps * 1800).toLocaleString();
+        speedEls[3600].textContent = Math.round(rps * 3600).toLocaleString(); 
+
+        // 4. Estimated Time Left
+        if (currentConfig.type === 'infinity' && absVel > 0.001) {
+             elTimeLeft.textContent = "∞ (永久)";
+             elTimeLeft.style.color = "#FF0055";
+        } else if (absVel > 0.001 && !isDragging) {
+            const threshold = 0.0005;
+            const damping = currentConfig.damping;
+            
+            const framesLeft = Math.log(threshold / absVel) / Math.log(damping);
+            const secondsLeft = Math.max(0, framesLeft / 60);
+            
+            if (secondsLeft > 86400) {
+                 elTimeLeft.textContent = (secondsLeft / 86400).toFixed(1) + " 日";
+            } else if (secondsLeft > 3600) {
+                 elTimeLeft.textContent = (secondsLeft / 3600).toFixed(1) + " 時間";
+            } else if (secondsLeft > 60) {
+                elTimeLeft.textContent = Math.floor(secondsLeft / 60) + " 分 " + Math.round(secondsLeft % 60) + " 秒";
+            } else {
+                elTimeLeft.textContent = Math.round(secondsLeft) + " 秒";
+            }
+            elTimeLeft.style.color = ""; 
+        } else if (isDragging) {
+            elTimeLeft.textContent = "計測中...";
+            elTimeLeft.style.color = "";
+        } else {
+            elTimeLeft.textContent = "0 秒";
+            elTimeLeft.style.color = "";
+        }
+    }
+
+    function loop() {
+        // Clear background with theme color (handled by CSS background, so just clear canvas)
+        ctx.clearRect(0, 0, width, height);
+        
+        updatePhysics();
+        calculateStats();
+
+        // Draw
+        ctx.save();
+        ctx.translate(centerX, centerY);
+        ctx.rotate(angle);
+        
+        // Responsive spinner size relative to Canvas Area
+        const size = Math.min(width, height) * 0.35; 
+
+        if (currentConfig.type === 'circle') {
+            drawCircleSpinner(size);
+        } else if (currentConfig.type === 'ninja') {
+            drawNinjaSpinner(size);
+        } else {
+            drawTriSpinner(size, currentConfig.type);
+        }
+
+        ctx.restore();
+
+        requestAnimationFrame(loop);
+    }
+
+    loop();
+
+</script>
+</body>
+</html>
