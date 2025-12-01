@@ -3,44 +3,33 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Ultimate Fidget Spinner Game</title>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <title>究極のハンドスピナー・シミュレーター (Realism Max)</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-color: #f0f2f5;
-            --text-color: #333333;
-            --panel-bg: #ffffff;
-            --border-color: #e0e0e0;
-            --accent-color: #2196F3;
-            --instruction-bg: #e3f2fd;
-            --stat-row-hover: #f9f9f9;
-        }
-
-        @media (prefers-color-scheme: dark) {
-            :root {
-                --bg-color: #121212;
-                --text-color: #e0e0e0;
-                --panel-bg: #1e1e1e;
-                --border-color: #333;
-                --accent-color: #64b5f6;
-                --instruction-bg: rgba(33, 150, 243, 0.15);
-                --stat-row-hover: #2c2c2c;
-            }
+            --bg-color: #1a1a1a;
+            --text-color: #e0e0e0;
+            --panel-bg: #2d2d2d;
+            --border-color: #444;
+            --accent-color: #00E676; /* Vivid Green for contrast */
+            --instruction-bg: rgba(0, 230, 118, 0.1);
+            --stat-row-hover: #383838;
         }
 
         body {
             margin: 0;
             padding: 0;
-            overflow: hidden; /* Prevent body scroll, handle inside containers */
+            overflow: hidden;
             background-color: var(--bg-color);
+            /* より高級感のあるダーク背景 */
+            background-image: radial-gradient(circle at 50% 50%, #3a3a3a 0%, #111 100%);
             color: var(--text-color);
-            font-family: 'Roboto', sans-serif;
+            font-family: 'Roboto', 'Noto Sans JP', sans-serif;
             height: 100vh;
             display: flex;
             flex-direction: column;
         }
 
-        /* アプリ全体のレイアウトコンテナ */
         #app-container {
             display: flex;
             flex: 1;
@@ -49,30 +38,26 @@
             position: relative;
         }
 
-        /* 左側のUIパネル (PC向け設定) */
+        /* 左側パネルのデザイン */
         #ui-panel {
-            width: 360px;
+            width: 380px;
             background-color: var(--panel-bg);
             border-right: 1px solid var(--border-color);
             display: flex;
             flex-direction: column;
             padding: 20px;
             box-sizing: border-box;
-            
-            /* スクロール設定 */
             overflow-y: auto; 
-            -webkit-overflow-scrolling: touch; /* iOSでのスムーズスクロール */
-            
+            -webkit-overflow-scrolling: touch;
             z-index: 10;
-            box-shadow: 2px 0 10px rgba(0,0,0,0.05);
+            box-shadow: 5px 0 20px rgba(0,0,0,0.4);
             flex-shrink: 0;
         }
 
-        /* 右側のCanvasエリア */
         #canvas-area {
             flex: 1;
             position: relative;
-            background-color: var(--bg-color);
+            background-color: transparent;
             overflow: hidden;
             cursor: grab;
         }
@@ -86,15 +71,10 @@
             height: 100%;
         }
 
-        /* UI要素のスタイル */
         .panel-section {
             margin-bottom: 25px;
         }
-        .panel-section:last-child {
-            margin-bottom: 0;
-        }
 
-        /* 操作説明ボックス */
         .instructions {
             background: var(--instruction-bg);
             padding: 15px;
@@ -102,39 +82,41 @@
             border-left: 4px solid var(--accent-color);
             font-size: 0.9rem;
             line-height: 1.6;
+            margin-bottom: 20px;
         }
         
         .instructions h3 {
             margin: 0 0 8px 0;
             font-size: 1rem;
             color: var(--accent-color);
+            font-weight: 700;
         }
 
         .instructions ul {
             margin: 0;
             padding-left: 20px;
-        }
-        .instructions li {
-            margin-bottom: 4px;
+            color: #ddd;
         }
 
         label {
             display: block;
             margin-bottom: 10px;
             font-weight: 700;
-            font-size: 0.95rem;
+            font-size: 0.85rem;
+            color: #aaa;
         }
 
         select {
             width: 100%;
             padding: 12px;
             font-size: 15px;
-            border-radius: 8px;
+            border-radius: 6px;
             border: 1px solid var(--border-color);
-            background: var(--bg-color);
-            color: var(--text-color);
+            background: #222;
+            color: #fff;
             outline: none;
             cursor: pointer;
+            box-shadow: inset 0 2px 5px rgba(0,0,0,0.2);
             transition: border-color 0.2s;
         }
         select:focus {
@@ -150,54 +132,51 @@
         
         .stats-table tr {
             border-bottom: 1px solid var(--border-color);
-            transition: background-color 0.2s;
         }
         .stats-table tr:hover {
             background-color: var(--stat-row-hover);
         }
-        .stats-table tr:last-child {
-            border-bottom: none;
-        }
         .stats-table td {
-            padding: 10px 5px;
+            padding: 12px 5px;
         }
         .stats-table .label {
-            opacity: 0.8;
+            color: #aaa;
             font-weight: 400;
         }
         .stats-table .value {
             text-align: right;
             font-weight: 500;
-            font-variant-numeric: tabular-nums;
+            font-family: 'Roboto Mono', monospace;
             color: var(--accent-color);
         }
 
-        /* メイン統計 (総回転数) */
+        /* メイン統計ボックス */
         .main-stat-box {
             text-align: center;
-            padding: 20px;
-            background: var(--bg-color);
+            padding: 25px;
+            background: linear-gradient(145deg, #2a2a2a, #333);
             border-radius: 12px;
             border: 1px solid var(--border-color);
-            margin-bottom: 15px;
-            box-shadow: inset 0 2px 4px rgba(0,0,0,0.03);
+            margin-bottom: 20px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
         }
         .main-stat-value {
-            font-size: 2.2rem;
-            font-weight: 700;
-            color: var(--accent-color);
+            font-size: 2.5rem;
+            font-weight: 900;
+            color: #fff;
             display: block;
             margin-bottom: 5px;
-            line-height: 1;
+            font-family: 'Roboto Mono', monospace;
+            text-shadow: 0 0 10px rgba(255,255,255,0.1);
         }
         .main-stat-label {
-            font-size: 0.85rem;
-            text-transform: uppercase;
+            font-size: 0.8rem;
             letter-spacing: 1px;
-            opacity: 0.6;
+            color: var(--accent-color);
+            font-weight: 700;
         }
 
-        /* スマホ向けレスポンシブ対応 */
+        /* スマホ対応 */
         @media (max-width: 768px) {
             #app-container {
                 flex-direction: column;
@@ -206,100 +185,75 @@
             #ui-panel {
                 width: 100%;
                 height: auto;
-                /* 画面の45%までUIを表示し、それ以上はスクロール */
-                max-height: 45vh; 
+                max-height: 40vh; 
                 border-right: none;
                 border-bottom: 1px solid var(--border-color);
                 padding: 15px;
-                
-                /* スマホではスクロールバーを常に表示しやすくする */
-                overflow-y: auto;
             }
-
-            .panel-section {
-                margin-bottom: 20px;
-            }
-
-            .main-stat-box {
-                padding: 15px;
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                text-align: left;
-            }
+            
             .main-stat-value {
-                font-size: 1.8rem;
-                margin-bottom: 0;
+                font-size: 2rem;
             }
         }
-
-        /* スクロールバーのカスタマイズ */
-        #ui-panel::-webkit-scrollbar {
-            width: 8px;
+        
+        /* スクロールバー */
+        ::-webkit-scrollbar {
+            width: 6px;
         }
-        #ui-panel::-webkit-scrollbar-track {
-            background: transparent;
+        ::-webkit-scrollbar-track {
+            background: #222; 
         }
-        #ui-panel::-webkit-scrollbar-thumb {
-            background-color: var(--border-color);
-            border-radius: 4px;
-            border: 2px solid var(--panel-bg); /* Padding effect */
-        }
-        #ui-panel::-webkit-scrollbar-thumb:hover {
-            background-color: #999;
+        ::-webkit-scrollbar-thumb {
+            background: #555; 
+            border-radius: 3px;
         }
     </style>
 </head>
 <body>
 
     <div id="app-container">
-        <!-- UI Panel (Scrollable) -->
+        <!-- UI Panel -->
         <div id="ui-panel">
             
-            <!-- Instructions -->
             <div class="panel-section instructions">
-                <h3>🎮 操作方法</h3>
+                <h3>🎮 遊び方</h3>
                 <ul>
-                    <li><strong>回転:</strong> マウスか指で勢いよくスワイプ</li>
-                    <li><strong>停止:</strong> 画面をタップ/クリックしたまま保持</li>
-                    <li><strong>UI:</strong> パネル内をスクロールして全データを確認</li>
+                    <li><strong>回転:</strong> 画面を勢いよくスワイプ/ドラッグ</li>
+                    <li><strong>停止:</strong> 画面を長押し（タップ保持）</li>
+                    <li><strong>選択:</strong> 下のリストからモデルを変更</li>
                 </ul>
             </div>
 
-            <!-- Controls -->
             <div class="panel-section">
-                <label for="typeSelect">ハンドスピナーのモデル</label>
+                <label for="typeSelect">モデル選択</label>
                 <select id="typeSelect">
-                    <option value="rusty">錆びたベアリング (ジャンク)</option>
-                    <option value="plastic">チープ・プラスチック</option>
-                    <option value="standard">スタンダードモデル</option>
-                    <option value="ninja">ニンジャ・スター (手裏剣)</option>
-                    <option value="heavy">ヘビーメタル (重量級)</option>
-                    <option value="performance">ハイパフォーマンス (競技用)</option>
-                    <option value="circle" selected>ザ・サークル (超重量・長時間)</option>
-                    <option value="rainbow">レインボー (ゲーミング)</option>
-                    <option value="infinity">永久機関 (∞回転)</option>
+                    <option value="ingot">純金インゴット (延べ棒型・24K)</option>
+                    <option value="circle" selected>ザ・サークル (オメガ・ドライブ)</option>
+                    <option value="standard">スタンダード (アルミ削り出し)</option>
+                    <option value="biohaz">バイオハザード (トキシック・グリーン)</option>
+                    <option value="gear">インダストリアル・ギア (歯車)</option>
+                    <option value="bat">ダークナイト (ステルス・ブラック)</option>
+                    <option value="ninja">手裏剣 (鋭利な刃物)</option>
+                    <option value="heavy">ヘビーメタル (タングステン鋼)</option>
+                    <option value="rainbow">レインボー (チタン焼き色)</option>
+                    <option value="infinity">インフィニティ (永久機関・摩擦ゼロ)</option>
                 </select>
             </div>
 
-            <!-- Stats -->
             <div class="panel-section">
-                <label>回転データ</label>
+                <label>リアルタイム計測データ</label>
                 
                 <div class="main-stat-box">
-                    <span class="main-stat-label">総回転数</span>
                     <span class="main-stat-value" id="totalRevs">0.00</span>
+                    <span class="main-stat-label">総回転数</span>
                 </div>
                 
-                <!-- 統計情報をテーブル化 -->
                 <table class="stats-table">
-                    <tr><td class="label">予想残り時間</td><td class="value" id="timeLeft">0s</td></tr>
+                    <tr><td class="label">停止予想時間</td><td class="value" id="timeLeft">0s</td></tr>
                     <tr><td class="label">現在の回転数 (RPM)</td><td class="value" id="currentRPM">0</td></tr>
                     <tr><td class="label">速度 (1秒換算)</td><td class="value" id="speed1s">0</td></tr>
-                    <tr><td class="label">速度 (5秒換算)</td><td class="value" id="speed5s">0</td></tr>
                     <tr><td class="label">速度 (1分換算)</td><td class="value" id="speed1m">0</td></tr>
                     <tr><td class="label">速度 (10分換算)</td><td class="value" id="speed10m">0</td></tr>
-                    <tr><td class="label">速度 (30分換算)</td><td class="value" id="speed30m">0</td></tr>
                     <tr><td class="label">速度 (1時間換算)</td><td class="value" id="speed1h">0</td></tr>
                 </table>
             </div>
@@ -314,7 +268,7 @@
 <script>
     const canvas = document.getElementById('spinnerCanvas');
     const canvasContainer = document.getElementById('canvas-area');
-    const ctx = canvas.getContext('2d', { alpha: false }); // 背景透過なしで高速化
+    const ctx = canvas.getContext('2d', { alpha: true }); 
     const typeSelect = document.getElementById('typeSelect');
 
     // UI Elements
@@ -323,68 +277,59 @@
     const elCurrentRPM = document.getElementById('currentRPM');
     const speedEls = {
         1: document.getElementById('speed1s'),
-        5: document.getElementById('speed5s'),
         60: document.getElementById('speed1m'),
         600: document.getElementById('speed10m'),
-        1800: document.getElementById('speed30m'),
         3600: document.getElementById('speed1h'),
     };
 
-    // State
-    let width, height;
-    let centerX, centerY;
+    // 物理演算ステート
+    let width, height, centerX, centerY;
     let angle = 0;
     let velocity = 0;
     let isDragging = false;
     let lastMouseAngle = 0;
     let totalRotation = 0;
     
-    // Physics Configuration
+    // 設定 & メタデータ
+    // labels: [上の文字, 下の文字]
     const SPINNER_TYPES = {
-        rusty:       { damping: 0.92,   mass: 1.0, type: 'tri' },
-        plastic:     { damping: 0.95,   mass: 0.5, type: 'tri' },
-        standard:    { damping: 0.985,  mass: 1.0, type: 'tri' },
-        ninja:       { damping: 0.99,   mass: 1.2, type: 'ninja' },
-        heavy:       { damping: 0.995,  mass: 2.5, type: 'tri' },
-        performance: { damping: 0.998,  mass: 1.5, type: 'tri' },
-        rainbow:     { damping: 0.99,   mass: 1.0, type: 'rainbow' },
-        circle:      { damping: 0.99992, mass: 3.0, type: 'circle' }, 
-        infinity:    { damping: 1.0,     mass: 1.0, type: 'infinity' }
+        circle:   { damping: 0.99992, mass: 3.0, type: 'circle', labels: ["OMEGA DRIVE", "GEN-X"] }, 
+        ingot:    { damping: 0.997,  mass: 5.0, type: 'ingot',  labels: ["FINE GOLD", "999.9"] }, // 超重量級
+        standard: { damping: 0.985,  mass: 1.0, type: 'tri',     labels: ["STANDARD", "SERIES-1"] },
+        biohaz:   { damping: 0.992,  mass: 1.2, type: 'biohaz',  labels: ["CAUTION", "TOXIC"] },
+        gear:     { damping: 0.990,  mass: 1.8, type: 'gear',    labels: ["INDUSTRIAL", "HEAVY"] },
+        bat:      { damping: 0.996,  mass: 1.4, type: 'bat',     labels: ["NIGHT", "WING"] },
+        ninja:    { damping: 0.993,  mass: 1.2, type: 'ninja',   labels: ["SHADOW", "STRIKE"] },
+        heavy:    { damping: 0.998,  mass: 2.5, type: 'tri',     labels: ["TUNGSTEN", "MK-IV"] },
+        rainbow:  { damping: 0.99,   mass: 1.0, type: 'tri',     labels: ["PRISM", "FADE"] },
+        infinity: { damping: 1.0,    mass: 1.0, type: 'infinity',labels: ["PERPETUAL", "MOTION"] }
     };
 
     let currentConfig = SPINNER_TYPES[typeSelect.value];
 
-    // Resize Handling
-    // ウィンドウではなく、canvas-areaのサイズに合わせてリサイズする
+    // --- 基本システム関数 ---
+
     function resize() {
         const rect = canvasContainer.getBoundingClientRect();
         width = rect.width;
         height = rect.height;
-        
-        // Handle High DPI (Retina)
         const dpr = window.devicePixelRatio || 1;
         canvas.width = width * dpr;
         canvas.height = height * dpr;
         ctx.scale(dpr, dpr);
-        
         centerX = width / 2;
         centerY = height / 2;
     }
     window.addEventListener('resize', resize);
-    // 初期化時にも実行
     resize();
 
-    // Interaction Handling
     function getAngle(x, y) {
-        // マウス座標はウィンドウ基準なので、キャンバスのオフセットを引く
         const rect = canvas.getBoundingClientRect();
         return Math.atan2((y - rect.top) - centerY, (x - rect.left) - centerX);
     }
 
     function startDrag(e) {
-        // UIパネル上の操作はCanvasに伝えない
         if(e.target.closest('#ui-panel')) return;
-
         isDragging = true;
         const x = e.touches ? e.touches[0].clientX : e.clientX;
         const y = e.touches ? e.touches[0].clientY : e.clientY;
@@ -394,38 +339,28 @@
 
     function moveDrag(e) {
         if (!isDragging) return;
-        
-        // Prevent default touch actions (scrolling) only when dragging on canvas
         if(e.cancelable) e.preventDefault();
-
         const x = e.touches ? e.touches[0].clientX : e.clientX;
         const y = e.touches ? e.touches[0].clientY : e.clientY;
         const currentMouseAngle = getAngle(x, y);
-        
         let delta = currentMouseAngle - lastMouseAngle;
-        // Handle wrapping from PI to -PI
         if (delta > Math.PI) delta -= Math.PI * 2;
         if (delta < -Math.PI) delta += Math.PI * 2;
-
         angle += delta;
         velocity = delta; 
-        
         lastMouseAngle = currentMouseAngle;
     }
 
     function endDrag() {
         isDragging = false;
-        const maxVel = 1.5;
+        const maxVel = 1.2; 
         if (velocity > maxVel) velocity = maxVel;
         if (velocity < -maxVel) velocity = -maxVel;
     }
 
-    // Event Listeners
-    // Use canvasContainer instead of canvas to catch events in the area
     canvasContainer.addEventListener('mousedown', startDrag);
     window.addEventListener('mousemove', moveDrag);
     window.addEventListener('mouseup', endDrag);
-
     canvasContainer.addEventListener('touchstart', startDrag, {passive: false});
     window.addEventListener('touchmove', moveDrag, {passive: false});
     window.addEventListener('touchend', endDrag);
@@ -434,93 +369,481 @@
         currentConfig = SPINNER_TYPES[e.target.value];
     });
 
-    // --- Drawing Functions ---
+    // --- 超リアル描画エンジン ---
 
-    function drawTriSpinner(radius, styleType) {
-        const r = radius;
-        const lobeRadius = r * 0.45;
-        const centerRadius = r * 0.25;
-
-        // Shadow
-        ctx.shadowColor = "rgba(0,0,0,0.2)";
-        ctx.shadowBlur = 20;
-        ctx.shadowOffsetY = 10;
-
-        // Body Shape
-        ctx.beginPath();
-        for (let i = 0; i < 3; i++) {
-            const theta = (Math.PI * 2 * i) / 3;
-            const lx = Math.cos(theta) * (r * 0.6);
-            const ly = Math.sin(theta) * (r * 0.6);
-            ctx.moveTo(lx, ly);
-            ctx.arc(lx, ly, lobeRadius, 0, Math.PI * 2);
-        }
-
-        // Fill Style
-        if (styleType === 'rainbow') {
-            ctx.fillStyle = `hsl(${angle * 60}, 90%, 60%)`;
-        } else if (styleType === 'infinity') {
-            const infGrad = ctx.createRadialGradient(0,0, r*0.1, 0,0, r);
-            infGrad.addColorStop(0, '#00ffff');
-            infGrad.addColorStop(0.5, '#0088ff');
-            infGrad.addColorStop(1, '#000033');
-            ctx.fillStyle = infGrad;
-        } else if (typeSelect.value === 'plastic') {
-            ctx.fillStyle = '#FF5722'; 
-        } else if (typeSelect.value === 'heavy') {
-            ctx.fillStyle = '#4a4a4a'; 
-        } else {
-            const grd = ctx.createLinearGradient(-r, -r, r, r);
-            grd.addColorStop(0, '#e0e0e0');
-            grd.addColorStop(0.5, '#f5f5f5');
-            grd.addColorStop(1, '#bdbdbd');
-            ctx.fillStyle = grd;
-        }
+    // 1. ヘルパー: 金属質感のグラデーション生成
+    function createMaterialGradient(ctx, r, angleRad, material) {
+        const lx = -r; 
+        const ly = -r;
+        const lx2 = r;
+        const ly2 = r;
         
-        ctx.fill();
-        ctx.shadowColor = "transparent"; 
+        const grd = ctx.createLinearGradient(lx, ly, lx2, ly2);
 
-        // Weights / Details
-        for (let i = 0; i < 3; i++) {
-            const theta = (Math.PI * 2 * i) / 3;
-            const lx = Math.cos(theta) * (r * 0.6);
-            const ly = Math.sin(theta) * (r * 0.6);
-            
-            ctx.beginPath();
-            ctx.arc(lx, ly, lobeRadius * 0.7, 0, Math.PI * 2);
-            ctx.fillStyle = (styleType === 'infinity') ? '#fff' : '#333';
-            ctx.fill();
-            
-            if (styleType !== 'plastic') {
-                ctx.beginPath();
-                ctx.arc(lx - 5, ly - 5, lobeRadius * 0.2, 0, Math.PI * 2);
-                ctx.fillStyle = 'rgba(255,255,255,0.3)';
-                ctx.fill();
+        if (material === 'gold' || material === 'ingot') {
+            // リッチな金色の輝きと深み
+            grd.addColorStop(0.0, '#4a2c00'); // 深い影
+            grd.addColorStop(0.2, '#CF9908'); // ベースゴールド
+            grd.addColorStop(0.4, '#FFEB80'); // ハイライト（反射）
+            grd.addColorStop(0.5, '#F2CD05'); // 黄金色
+            grd.addColorStop(0.7, '#966F02'); // 影
+            grd.addColorStop(0.9, '#FFEB80'); // エッジ反射
+            grd.addColorStop(1.0, '#4a2c00'); 
+        } else if (material === 'tungsten') { // 重厚なダークメタル
+            grd.addColorStop(0.0, '#1a1a1a');
+            grd.addColorStop(0.3, '#444');
+            grd.addColorStop(0.5, '#888'); // 鋭いハイライト
+            grd.addColorStop(0.7, '#333');
+            grd.addColorStop(1.0, '#000');
+        } else if (material === 'bio') { // 毒々しいグリーン
+            grd.addColorStop(0, '#002200');
+            grd.addColorStop(0.3, '#006600');
+            grd.addColorStop(0.5, '#44ff44');
+            grd.addColorStop(0.7, '#006600');
+            grd.addColorStop(1, '#001100');
+        } else if (material === 'bat') { // マットブラック
+            grd.addColorStop(0, '#050505');
+            grd.addColorStop(0.5, '#2a2a2a');
+            grd.addColorStop(1, '#000000');
+        } else if (material === 'neochrome') {
+            // 焼きチタン（虹色）
+            for(let i=0; i<=1; i+=0.1) {
+                grd.addColorStop(i, `hsl(${(i * 360 + angle * 50) % 360}, 85%, 60%)`);
             }
+        } else { // 標準アルミ/シルバー
+            grd.addColorStop(0.0, '#444');
+            grd.addColorStop(0.2, '#bbb');
+            grd.addColorStop(0.45, '#fff'); // スペキュラー
+            grd.addColorStop(0.55, '#ccc');
+            grd.addColorStop(0.8, '#666');
+            grd.addColorStop(1.0, '#333');
         }
+        return grd;
+    }
 
-        // Center Cap
+    // 2. ヘルパー: センターキャップ（ベアリングカバー）
+    function drawCenterCap(r, type, labelOverride = null) {
+        const capR = r * 0.22;
+        const labels = labelOverride || currentConfig.labels;
+
+        // キャップの影
+        ctx.save();
+        ctx.shadowColor = "rgba(0,0,0,0.6)";
+        ctx.shadowBlur = 12;
+        ctx.shadowOffsetY = 5;
+        
         ctx.beginPath();
-        ctx.arc(0, 0, centerRadius, 0, Math.PI * 2);
-        const capGrad = ctx.createRadialGradient(-5, -5, 5, 0, 0, centerRadius);
-        capGrad.addColorStop(0, '#fff');
-        capGrad.addColorStop(1, '#999');
+        ctx.arc(0, 0, capR, 0, Math.PI * 2);
+        
+        // キャップの材質
+        const capGrad = ctx.createRadialGradient(-capR*0.3, -capR*0.3, 0, 0, 0, capR);
+        if(type === 'bat') {
+            capGrad.addColorStop(0, '#555');
+            capGrad.addColorStop(1, '#111');
+        } else if (type === 'gold' || type === 'ingot') {
+            capGrad.addColorStop(0, '#FFF5CC');
+            capGrad.addColorStop(0.3, '#E6C200');
+            capGrad.addColorStop(1, '#B38600');
+        } else {
+            capGrad.addColorStop(0, '#fff');
+            capGrad.addColorStop(0.2, '#eee');
+            capGrad.addColorStop(0.6, '#bbb');
+            capGrad.addColorStop(1, '#888');
+        }
         ctx.fillStyle = capGrad;
+        ctx.fill();
+        ctx.restore(); 
+
+        // 旋盤加工の溝
+        ctx.strokeStyle = (type === 'bat') ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.1)";
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.arc(0, 0, capR * 0.85, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.arc(0, 0, capR * 0.6, 0, Math.PI * 2);
+        ctx.stroke();
+
+        // テキスト刻印
+        ctx.save();
+        // テキストの向きを固定（または本体に合わせて回転）ここでは回転させる
+        ctx.rotate(-Math.PI / 2); 
+
+        ctx.fillStyle = (type === 'bat') ? "#555" : "rgba(0,0,0,0.5)"; 
+        if (type === 'gold' || type === 'ingot') ctx.fillStyle = "rgba(101, 67, 33, 0.7)"; // ダークブラウン
+
+        ctx.font = `700 ${capR * 0.20}px 'Roboto', sans-serif`;
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        
+        // 刻印の凹み表現（インナーシャドウ風）
+        ctx.shadowColor = "rgba(255,255,255,0.5)";
+        ctx.shadowBlur = 0;
+        ctx.shadowOffsetY = 1; 
+
+        // 上の文字
+        ctx.save();
+        ctx.translate(capR * 0.6, 0);
+        ctx.rotate(Math.PI / 2);
+        ctx.fillText(labels[0], 0, 0);
+        ctx.restore();
+
+        // 下の文字
+        ctx.save();
+        ctx.translate(-capR * 0.6, 0);
+        ctx.rotate(-Math.PI / 2);
+        ctx.fillText(labels[1], 0, 0);
+        ctx.restore();
+
+        ctx.restore();
+
+        // センターボルト（六角穴）
+        ctx.beginPath();
+        ctx.arc(0,0, capR*0.15, 0, Math.PI*2);
+        ctx.fillStyle = (type==='bat') ? "#222" : "#ddd";
+        if (type === 'gold' || type === 'ingot') ctx.fillStyle = "#E6C200";
+        ctx.fill();
+        // 六角形の穴
+        ctx.beginPath();
+        for(let i=0; i<6; i++) {
+            const th = i * Math.PI/3;
+            const hx = Math.cos(th)*capR*0.08;
+            const hy = Math.sin(th)*capR*0.08;
+            if(i===0) ctx.moveTo(hx,hy); else ctx.lineTo(hx,hy);
+        }
+        ctx.fillStyle = "rgba(0,0,0,0.6)";
         ctx.fill();
     }
 
-    function drawNinjaSpinner(radius) {
-        const r = radius;
-        const blades = 4;
+
+    // 3. MODEL: ザ・サークル (オリジナル再現)
+    function drawCircleSpinner(r) {
+        const rimWidth = r * 0.15;
+        const innerRadius = r - rimWidth;
+
+        // 影
+        ctx.shadowColor = "rgba(0,0,0,0.5)";
+        ctx.shadowBlur = 30;
+        ctx.shadowOffsetY = 15;
+
+        // 1. 外周の金リム (シリンダー感)
+        ctx.beginPath();
+        ctx.arc(0, 0, r, 0, Math.PI * 2);
+        const rimGrad = ctx.createLinearGradient(-r, -r, r, r);
+        rimGrad.addColorStop(0.0, '#B8860B'); 
+        rimGrad.addColorStop(0.2, '#FFD700'); 
+        rimGrad.addColorStop(0.45, '#FFFACD'); // 強いハイライト
+        rimGrad.addColorStop(0.55, '#FFD700'); 
+        rimGrad.addColorStop(0.8, '#DAA520'); 
+        rimGrad.addColorStop(1.0, '#5e3a00'); 
+        ctx.fillStyle = rimGrad;
+        ctx.fill();
+        ctx.shadowColor = "transparent";
+
+        // 2. 内側の銀ボディ
+        ctx.beginPath();
+        ctx.arc(0, 0, innerRadius, 0, Math.PI * 2);
+        const bodyGrad = ctx.createRadialGradient(0, 0, innerRadius * 0.1, 0, 0, innerRadius);
+        bodyGrad.addColorStop(0, '#f8f8f8');
+        bodyGrad.addColorStop(0.8, '#dcdcdc');
+        bodyGrad.addColorStop(1, '#999'); 
+        ctx.fillStyle = bodyGrad;
+        ctx.fill();
+
+        // 3. 穴あけ加工と面取り(ベベル)
+        const holeDist = r * 0.62;
+        const holeRadius = r * 0.18;
         
-        ctx.shadowColor = "rgba(0,0,0,0.3)";
-        ctx.shadowBlur = 15;
-        ctx.shadowOffsetY = 8;
+        // 穴を抜く
+        ctx.save();
+        ctx.globalCompositeOperation = 'destination-out';
+        for (let i = 0; i < 8; i++) {
+            const theta = (Math.PI * 2 * i) / 8;
+            const hx = Math.cos(theta) * holeDist;
+            const hy = Math.sin(theta) * holeDist;
+            ctx.beginPath();
+            ctx.arc(hx, hy, holeRadius, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        ctx.restore();
+
+        // ベベルを描画
+        for (let i = 0; i < 8; i++) {
+            const theta = (Math.PI * 2 * i) / 8;
+            const hx = Math.cos(theta) * holeDist;
+            const hy = Math.sin(theta) * holeDist;
+            
+            ctx.beginPath();
+            ctx.arc(hx, hy, holeRadius, 0, Math.PI * 2);
+            const holeGrad = ctx.createLinearGradient(hx-holeRadius, hy-holeRadius, hx+holeRadius, hy+holeRadius);
+            holeGrad.addColorStop(0, 'rgba(0,0,0,0.6)'); 
+            holeGrad.addColorStop(0.5, 'transparent');
+            holeGrad.addColorStop(1, 'rgba(255,255,255,0.9)');
+            ctx.strokeStyle = holeGrad;
+            ctx.lineWidth = 4;
+            ctx.stroke();
+        }
+
+        drawCenterCap(r, 'silver');
+    }
+
+    // 4. MODEL: 純金インゴット (延べ棒型) - NEW!
+    function drawIngotSpinner(r) {
+        // バー型スピナー（長方形）
+        const barWidth = r * 1.8;
+        const barHeight = r * 0.75;
+        const cornerRadius = 20;
+
+        ctx.shadowColor = "rgba(0,0,0,0.5)";
+        ctx.shadowBlur = 25;
+        ctx.shadowOffsetY = 15;
+
+        // 形状パスの作成
+        ctx.beginPath();
+        ctx.roundRect(-barWidth/2, -barHeight/2, barWidth, barHeight, cornerRadius);
+        
+        // リッチな金グラデーション
+        const goldGrad = ctx.createLinearGradient(-barWidth/2, -barHeight/2, barWidth/2, barHeight/2);
+        goldGrad.addColorStop(0, '#B8860B');
+        goldGrad.addColorStop(0.2, '#FFD700');
+        goldGrad.addColorStop(0.4, '#FFFACD'); // 強い光沢
+        goldGrad.addColorStop(0.6, '#FFD700');
+        goldGrad.addColorStop(0.8, '#B8860B');
+        goldGrad.addColorStop(1, '#5e3a00');
+        ctx.fillStyle = goldGrad;
+        ctx.fill();
+        ctx.shadowColor = "transparent";
+
+        // エッジのハイライト（面取り感）
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = "rgba(255,255,255,0.4)";
+        ctx.stroke();
+
+        // 刻印テキスト (左右のアーム部分)
+        ctx.save();
+        ctx.fillStyle = "rgba(139, 69, 19, 0.4)"; // 刻印色
+        ctx.shadowColor = "rgba(255,255,255,0.3)";
+        ctx.shadowBlur = 0;
+        ctx.shadowOffsetX = 1;
+        ctx.shadowOffsetY = 1;
+        ctx.font = `900 ${r * 0.15}px 'Roboto', sans-serif`;
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+
+        // 左側
+        ctx.fillText("999.9", -barWidth * 0.35, 0);
+        // 右側
+        ctx.fillText("NET 1KG", barWidth * 0.35, 0);
+        
+        // 質感ノイズ（鋳造感）
+        ctx.globalCompositeOperation = "overlay";
+        ctx.fillStyle = "rgba(0,0,0,0.05)";
+        ctx.fillText("999.9", -barWidth * 0.35, 0);
+        ctx.fillText("NET 1KG", barWidth * 0.35, 0);
+        ctx.globalCompositeOperation = "source-over";
+        ctx.restore();
+
+        // センターキャップ
+        drawCenterCap(r, 'ingot');
+    }
+
+    // 5. MODEL: バイオハザード
+    function drawBioSpinner(r) {
+        ctx.shadowColor = "rgba(0,255,0,0.15)";
+        ctx.shadowBlur = 25;
+        
+        const symbolR = r * 0.95;
+        
+        ctx.beginPath();
+        for(let i=0; i<3; i++) {
+            const angle = (Math.PI * 2 * i) / 3 - Math.PI/2;
+            const cx = Math.cos(angle) * symbolR * 0.6;
+            const cy = Math.sin(angle) * symbolR * 0.6;
+            
+            ctx.moveTo(0,0);
+            ctx.arc(cx, cy, symbolR * 0.5, angle - 2.3, angle + 2.3);
+        }
+        ctx.closePath();
+        
+        ctx.fillStyle = createMaterialGradient(ctx, r, 0, 'bio');
+        ctx.fill();
+        ctx.shadowColor = "transparent";
+        
+        // 黒い切り抜き部分
+        ctx.globalCompositeOperation = 'destination-out';
+        ctx.beginPath();
+        for(let i=0; i<3; i++) {
+            const angle = (Math.PI * 2 * i) / 3 - Math.PI/2;
+            const cx = Math.cos(angle) * symbolR * 0.7;
+            const cy = Math.sin(angle) * symbolR * 0.7;
+            ctx.moveTo(cx, cy);
+            ctx.arc(cx, cy, symbolR * 0.35, 0, Math.PI*2);
+        }
+        ctx.fill();
+        
+        // 中央の空間
+        ctx.beginPath();
+        ctx.arc(0, 0, r*0.35, 0, Math.PI*2); 
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(0, 0, r*0.4, 0, Math.PI*2); // リング状の隙間
+        ctx.stroke();
+        
+        ctx.globalCompositeOperation = 'source-over';
+
+        // 毒々しいエッジライト
+        ctx.strokeStyle = "#44ff44";
+        ctx.lineWidth = 1;
+        ctx.stroke();
+
+        drawCenterCap(r, 'bio');
+    }
+
+    // 6. MODEL: ギア (歯車)
+    function drawGearSpinner(r) {
+        ctx.shadowColor = "rgba(0,0,0,0.6)";
+        ctx.shadowBlur = 20;
+        
+        const teeth = 8;
+        const outerR = r * 0.9;
+        const innerR = r * 0.7;
+        
+        ctx.beginPath();
+        for(let i=0; i<teeth * 2; i++) {
+            const a = (Math.PI * 2 * i) / (teeth * 2);
+            const radius = (i % 2 === 0) ? outerR : innerR;
+            const px = Math.cos(a) * radius;
+            const py = Math.sin(a) * radius;
+            if(i===0) ctx.moveTo(px,py);
+            else ctx.lineTo(px,py);
+        }
+        ctx.closePath();
+        
+        // インダストリアルな質感
+        const indGrad = ctx.createLinearGradient(-r, -r, r, r);
+        indGrad.addColorStop(0, '#2c3e50');
+        indGrad.addColorStop(0.3, '#95a5a6');
+        indGrad.addColorStop(0.6, '#34495e');
+        indGrad.addColorStop(1, '#2c3e50');
+        
+        ctx.fillStyle = indGrad;
+        ctx.fill();
+        ctx.shadowColor = "transparent";
+
+        // ボルト装飾
+        for(let i=0; i<teeth; i++) {
+            const a = (Math.PI * 2 * i) / teeth + (Math.PI/teeth); 
+            const bx = Math.cos(a) * (innerR * 0.8);
+            const by = Math.sin(a) * (innerR * 0.8);
+            
+            ctx.beginPath();
+            ctx.arc(bx, by, r*0.06, 0, Math.PI*2);
+            ctx.fillStyle = "#111";
+            ctx.fill();
+            
+            ctx.beginPath();
+            ctx.arc(bx, by, r*0.03, 0, Math.PI*2);
+            ctx.fillStyle = "#555";
+            ctx.fill();
+        }
+
+        drawCenterCap(r, 'gear');
+    }
+
+    // 7. MODEL: ダークナイト (バット型)
+    function drawBatSpinner(r) {
+        ctx.shadowColor = "rgba(0,0,0,0.9)";
+        ctx.shadowBlur = 25;
+        
+        ctx.beginPath();
+        // 翼の形状
+        const wingSpan = r * 0.9;
+        ctx.moveTo(0, -r*0.3); // 上部のくぼみ
+        
+        // 右翼
+        ctx.quadraticCurveTo(wingSpan*0.5, -r*0.5, wingSpan, -r*0.2); 
+        ctx.quadraticCurveTo(wingSpan*0.8, 0, wingSpan, r*0.2); 
+        ctx.quadraticCurveTo(wingSpan*0.5, r*0.1, 0, r*0.4); // 尾
+        
+        // 左翼 (対称)
+        ctx.quadraticCurveTo(-wingSpan*0.5, r*0.1, -wingSpan, r*0.2);
+        ctx.quadraticCurveTo(-wingSpan*0.8, 0, -wingSpan, -r*0.2);
+        ctx.quadraticCurveTo(-wingSpan*0.5, -r*0.5, 0, -r*0.3);
+        
+        ctx.fillStyle = createMaterialGradient(ctx, r, 0, 'bat');
+        ctx.fill();
+        ctx.lineWidth = 1.5;
+        ctx.strokeStyle = "#444";
+        ctx.stroke();
+        
+        ctx.shadowColor = "transparent";
+        drawCenterCap(r, 'bat');
+    }
+
+    // 8. MODEL: 3枚羽 (スタンダード / ヘビー / レインボー)
+    function drawTriSpinner(r, matType) {
+        ctx.shadowColor = "rgba(0,0,0,0.4)";
+        ctx.shadowBlur = 30;
+        ctx.shadowOffsetY = 15;
+
+        // ボディ形状
+        ctx.beginPath();
+        for (let i = 0; i < 3; i++) {
+            const a = (Math.PI * 2 * i) / 3;
+            const cx = Math.cos(a) * (r * 0.6);
+            const cy = Math.sin(a) * (r * 0.6);
+            // アームの円
+            ctx.arc(cx, cy, r*0.38, 0, Math.PI*2);
+        }
+        // 中心結合部
+        ctx.arc(0, 0, r*0.42, 0, Math.PI*2);
+        
+        // マテリアル決定
+        let materialKey = 'silver';
+        if(matType === 'heavy') materialKey = 'tungsten';
+        else if(matType === 'rainbow') materialKey = 'neochrome';
+        
+        ctx.fillStyle = createMaterialGradient(ctx, r, angle, materialKey);
+        ctx.fill();
+        ctx.shadowColor = "transparent";
+
+        // ウェイト/ベアリング部分
+        for (let i = 0; i < 3; i++) {
+            const a = (Math.PI * 2 * i) / 3;
+            const cx = Math.cos(a) * (r * 0.6);
+            const cy = Math.sin(a) * (r * 0.6);
+            
+            // 外リング (ゴム/プラスチック部分)
+            ctx.beginPath();
+            ctx.arc(cx, cy, r*0.28, 0, Math.PI*2);
+            ctx.fillStyle = "rgba(0,0,0,0.4)";
+            ctx.fill();
+            
+            // ウェイト本体 (金属光沢)
+            ctx.beginPath();
+            ctx.arc(cx, cy, r*0.24, 0, Math.PI*2);
+            const wGrad = ctx.createLinearGradient(cx-r*0.2, cy-r*0.2, cx+r*0.2, cy+r*0.2);
+            wGrad.addColorStop(0, '#333');
+            wGrad.addColorStop(0.4, '#fff'); // 鋭い反射
+            wGrad.addColorStop(0.6, '#888');
+            wGrad.addColorStop(1, '#333');
+            ctx.fillStyle = wGrad;
+            ctx.fill();
+        }
+
+        drawCenterCap(r, materialKey);
+    }
+
+    // 9. MODEL: 忍者 (手裏剣)
+    function drawNinjaSpinner(r) {
+        const blades = 4;
+        ctx.shadowColor = "rgba(0,0,0,0.6)";
+        ctx.shadowBlur = 20;
 
         ctx.beginPath();
         for (let i = 0; i < blades * 2; i++) {
             const theta = (Math.PI * i) / blades;
-            const dist = (i % 2 === 0) ? r : r * 0.3;
+            const dist = (i % 2 === 0) ? r : r * 0.25;
             const px = Math.cos(theta) * dist;
             const py = Math.sin(theta) * dist;
             if (i===0) ctx.moveTo(px, py);
@@ -528,113 +851,24 @@
         }
         ctx.closePath();
 
-        const ninGrad = ctx.createLinearGradient(-r, -r, r, r);
-        ninGrad.addColorStop(0, '#111');
-        ninGrad.addColorStop(0.5, '#444');
-        ninGrad.addColorStop(1, '#000');
-        ctx.fillStyle = ninGrad;
+        const grad = ctx.createLinearGradient(-r, -r, r, r);
+        grad.addColorStop(0, '#000');
+        grad.addColorStop(0.5, '#999'); // 刃先の鋭い光
+        grad.addColorStop(0.52, '#444');
+        grad.addColorStop(1, '#111');
+        ctx.fillStyle = grad;
         ctx.fill();
         
-        ctx.strokeStyle = '#ccc';
-        ctx.lineWidth = 2;
+        // 刃のエッジ強調
+        ctx.strokeStyle = "rgba(255,255,255,0.7)";
+        ctx.lineWidth = 1;
         ctx.stroke();
 
         ctx.shadowColor = "transparent";
-        
-        // Center
-        ctx.beginPath();
-        ctx.arc(0, 0, r*0.15, 0, Math.PI*2);
-        ctx.fillStyle = "#888";
-        ctx.fill();
+        drawCenterCap(r, 'ninja');
     }
 
-    function drawCircleSpinner(radius) {
-        const r = radius * 0.9;
-        
-        ctx.shadowColor = "rgba(0,0,0,0.3)";
-        ctx.shadowBlur = 15;
-        ctx.shadowOffsetY = 8;
-
-        // 1. Outer Gold Rim
-        ctx.beginPath();
-        ctx.arc(0, 0, r, 0, Math.PI * 2);
-        const goldGrad = ctx.createLinearGradient(-r, -r, r, r);
-        goldGrad.addColorStop(0, '#B8860B'); 
-        goldGrad.addColorStop(0.2, '#FFD700'); 
-        goldGrad.addColorStop(0.5, '#FFF8DC'); 
-        goldGrad.addColorStop(0.8, '#FFD700');
-        goldGrad.addColorStop(1, '#DAA520'); 
-        ctx.fillStyle = goldGrad;
-        ctx.fill();
-        ctx.shadowColor = "transparent";
-
-        // 2. Inner Silver Body
-        const innerR = r * 0.85;
-        ctx.beginPath();
-        ctx.arc(0, 0, innerR, 0, Math.PI * 2);
-        const silverGrad = ctx.createRadialGradient(0, 0, innerR * 0.2, 0, 0, innerR);
-        silverGrad.addColorStop(0, '#f5f5f5');
-        silverGrad.addColorStop(0.8, '#dcdcdc');
-        silverGrad.addColorStop(1, '#a9a9a9');
-        ctx.fillStyle = silverGrad;
-        ctx.fill();
-
-        // Texture
-        ctx.strokeStyle = "rgba(0,0,0,0.05)";
-        ctx.lineWidth = 1;
-        for(let i=0; i<5; i++) {
-            ctx.beginPath();
-            ctx.arc(0, 0, innerR * (0.3 + i*0.15), 0, Math.PI * 2);
-            ctx.stroke();
-        }
-
-        // 3. Holes
-        const holeDist = r * 0.6;
-        const holeRadius = r * 0.18;
-        
-        ctx.globalCompositeOperation = 'destination-out'; 
-        for (let i = 0; i < 8; i++) {
-            const theta = (Math.PI * 2 * i) / 8;
-            const hx = Math.cos(theta) * holeDist;
-            const hy = Math.sin(theta) * holeDist;
-            ctx.beginPath();
-            ctx.arc(hx, hy, holeRadius, 0, Math.PI * 2);
-            ctx.fill();
-        }
-        ctx.globalCompositeOperation = 'source-over'; 
-
-        for (let i = 0; i < 8; i++) {
-            const theta = (Math.PI * 2 * i) / 8;
-            const hx = Math.cos(theta) * holeDist;
-            const hy = Math.sin(theta) * holeDist;
-            ctx.beginPath();
-            ctx.arc(hx, hy, holeRadius, 0, Math.PI * 2);
-            ctx.strokeStyle = "rgba(0,0,0,0.2)";
-            ctx.lineWidth = 2;
-            ctx.stroke();
-        }
-
-        // 4. Center Cap
-        const capR = r * 0.25;
-        ctx.beginPath();
-        ctx.arc(0, 0, capR, 0, Math.PI * 2);
-        const capGrad = ctx.createRadialGradient(-10, -10, 5, 0, 0, capR);
-        capGrad.addColorStop(0, '#ffffff');
-        capGrad.addColorStop(1, '#C0C0C0');
-        ctx.fillStyle = capGrad;
-        ctx.fill();
-
-        // 5. Text
-        ctx.save();
-        ctx.fillStyle = "#888";
-        ctx.font = `bold ${capR * 0.22}px 'Roboto', sans-serif`;
-        ctx.textAlign = "center";
-        ctx.textBaseline = "middle";
-        ctx.fillText("OMEGA DRIVE", 0, -capR * 0.2);
-        ctx.font = `${capR * 0.18}px 'Roboto', sans-serif`;
-        ctx.fillText("GEN-X", 0, capR * 0.2);
-        ctx.restore();
-    }
+    // --- メインループ ---
 
     function updatePhysics() {
         if (!isDragging) {
@@ -646,15 +880,12 @@
             }
             angle += velocity;
         }
-
         totalRotation += Math.abs(velocity / (2 * Math.PI));
     }
 
     function calculateStats() {
-        // 1. Total Revolutions
         elTotalRevs.textContent = totalRotation.toFixed(2);
-
-        // 2. Current RPM
+        
         const fps = 60;
         const absVel = Math.abs(velocity);
         const rps = (absVel * fps) / (2 * Math.PI);
@@ -662,73 +893,58 @@
         
         elCurrentRPM.textContent = Math.round(rpm).toLocaleString();
 
-        // 3. Projected Counts
-        const calcRotationsForDuration = (seconds) => {
-            return (rps * seconds).toFixed(1);
-        };
-        
-        speedEls[1].textContent = calcRotationsForDuration(1);
-        speedEls[5].textContent = calcRotationsForDuration(5);
-        speedEls[60].textContent = calcRotationsForDuration(60); 
-        speedEls[600].textContent = calcRotationsForDuration(600); 
-        speedEls[1800].textContent = Math.round(rps * 1800).toLocaleString();
+        const calcRot = (secs) => (rps * secs).toFixed(1);
+        speedEls[1].textContent = calcRot(1);
+        speedEls[60].textContent = calcRot(60); 
+        speedEls[600].textContent = calcRot(600); 
         speedEls[3600].textContent = Math.round(rps * 3600).toLocaleString(); 
 
-        // 4. Estimated Time Left
         if (currentConfig.type === 'infinity' && absVel > 0.001) {
-             elTimeLeft.textContent = "∞ (永久)";
-             elTimeLeft.style.color = "#FF0055";
+             elTimeLeft.textContent = "∞ (無限)";
+             elTimeLeft.style.color = "#00E676";
         } else if (absVel > 0.001 && !isDragging) {
             const threshold = 0.0005;
             const damping = currentConfig.damping;
-            
             const framesLeft = Math.log(threshold / absVel) / Math.log(damping);
             const secondsLeft = Math.max(0, framesLeft / 60);
             
-            if (secondsLeft > 86400) {
-                 elTimeLeft.textContent = (secondsLeft / 86400).toFixed(1) + " 日";
-            } else if (secondsLeft > 3600) {
-                 elTimeLeft.textContent = (secondsLeft / 3600).toFixed(1) + " 時間";
-            } else if (secondsLeft > 60) {
-                elTimeLeft.textContent = Math.floor(secondsLeft / 60) + " 分 " + Math.round(secondsLeft % 60) + " 秒";
+            if (secondsLeft > 60) {
+                elTimeLeft.textContent = Math.floor(secondsLeft / 60) + "分 " + Math.round(secondsLeft % 60) + "秒";
             } else {
-                elTimeLeft.textContent = Math.round(secondsLeft) + " 秒";
+                elTimeLeft.textContent = Math.round(secondsLeft) + "秒";
             }
             elTimeLeft.style.color = ""; 
-        } else if (isDragging) {
-            elTimeLeft.textContent = "計測中...";
-            elTimeLeft.style.color = "";
         } else {
-            elTimeLeft.textContent = "0 秒";
-            elTimeLeft.style.color = "";
+            elTimeLeft.textContent = "0秒";
         }
     }
 
     function loop() {
-        // Clear background with theme color (handled by CSS background, so just clear canvas)
         ctx.clearRect(0, 0, width, height);
         
         updatePhysics();
         calculateStats();
 
-        // Draw
         ctx.save();
         ctx.translate(centerX, centerY);
         ctx.rotate(angle);
         
-        // Responsive spinner size relative to Canvas Area
-        const size = Math.min(width, height) * 0.35; 
+        // 画面サイズに合わせたスケーリング
+        const size = Math.min(width, height) * 0.38; 
 
-        if (currentConfig.type === 'circle') {
-            drawCircleSpinner(size);
-        } else if (currentConfig.type === 'ninja') {
-            drawNinjaSpinner(size);
-        } else {
-            drawTriSpinner(size, currentConfig.type);
-        }
+        // 描画振り分け
+        const type = currentConfig.type;
+        const val = typeSelect.value; 
+
+        if (type === 'circle') drawCircleSpinner(size);
+        else if (type === 'ingot') drawIngotSpinner(size); // 純金インゴット
+        else if (type === 'biohaz') drawBioSpinner(size);
+        else if (type === 'gear') drawGearSpinner(size);
+        else if (type === 'bat') drawBatSpinner(size);
+        else if (type === 'ninja') drawNinjaSpinner(size);
+        else drawTriSpinner(size, val); // スタンダード系
 
         ctx.restore();
-
         requestAnimationFrame(loop);
     }
 
